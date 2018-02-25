@@ -1,0 +1,55 @@
+- name: install repository certificate
+  shell: echo -n | openssl s_client -showcerts -connect gitlab.eurecom.fr:443 2>/dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-certificates.crt && touch certificate_installed
+  args:
+    chdir: ~/linux-4.7.x
+    creates: certificate_installed
+
+- name: copy openair-cn
+  unarchive:
+    src: openair-cn.tar.gz
+    dest: ~/
+
+- name: make mme
+  shell: yes | ./build_mme -i && touch mme_built
+  args:
+    chdir: ~/openair-cn/SCRIPTS
+    creates: mme_built
+
+- name: make hss
+  shell: yes | ./build_hss -i && touch hss_built
+  args:
+    chdir: ~/openair-cn/SCRIPTS
+    creates: hss_built
+
+- name: make spgw
+  shell: yes | ./build_spgw -i && touch spgw_built
+  args:
+    chdir: ~/openair-cn/SCRIPTS
+    creates: spgw_built
+
+- name: check hss certificate
+  shell: ./check_hss_s6a_certificate /usr/local/etc/oai/freeDiameter/ hss.openair4G.eur && touch hss_certificate_checked
+  args:
+    chdir: ~/openair-cn/SCRIPTS
+    creates: hss_certificate_checked
+
+- name: check mme certificate
+  shell: ./check_mme_s6a_certificate /usr/local/etc/oai/freeDiameter/ nano.openair4G.eur && touch mme_certificate_checked
+  args:
+    chdir: ~/openair-cn/SCRIPTS
+    creates: mme_certificate_checked
+
+- name: build hss
+  shell: ./build_hss -c
+  args:
+    chdir: ~/openair-cn/SCRIPTS
+
+- name: build mme
+  shell: ./build_mme -c
+  args:
+    chdir: ~/openair-cn/SCRIPTS
+
+- name: build spgw
+  shell: ./build_spgw -c
+  args:
+    chdir: ~/openair-cn/SCRIPTS

@@ -1,0 +1,26 @@
+- name: DEBCONF | MySQL (root password)
+  debconf: name='mysql-server' question='mysql-server/root_password' vtype='password' value='linux'
+
+- name: DEBCONF | MySQL (root password again)
+  debconf: name='mysql-server' question='mysql-server/root_password_again' vtype='password' value='linux'
+
+- name: INSTALL | MySQL Server
+  apt: name=mysql-server state=latest
+
+- name: DEBCONF | Wireshark (non-root user)
+  become: yes
+  debconf: name='wireshark-common' question='wireshark-common/install-setuid' value='true' vtype='boolean'
+
+- name: DEBCONF | Phpmyadmin
+  debconf:
+    name: phpmyadmin
+    question: "{{ item.question }}"
+    value: "{{ item.value }}"
+    vtype: "{{ item.vtype }}"
+  with_items:
+    - { question: 'phpmyadmin/dbconfig-install', value: 'true', vtype: 'boolean' }
+    - { question: 'phpmyadmin/remote/port', value: '3306', vtype: 'string' }
+    - { question: 'phpmyadmin/app-password-confirm', value: 'linux', vtype: 'password' }
+    - { question: 'phpmyadmin/mysql/admin-pass', value: 'linux', vtype: 'password' }
+    - { question: 'phpmyadmin/mysql/app-pass', value: 'linux', vtype: 'password' }
+    - { question: 'phpmyadmin/reconfigure-webserver', value: '', vtype: 'multiselect' }

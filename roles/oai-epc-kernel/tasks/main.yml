@@ -1,0 +1,50 @@
+- name: clone kernel
+  git:
+    repo: https://gitlab.eurecom.fr/oai/linux-4.7.x.git
+    dest: ~/linux-4.7.x
+
+- name: install kernel
+  shell: dpkg -i linux-headers-4.7.7-oaiepc_4.7.7-oaiepc-10.00.Custom_amd64.deb linux-image-4.7.7-oaiepc_4.7.7-oaiepc-10.00.Custom_amd64.deb && touch kernel_installed && touch not_restarted
+  args:
+    chdir: ~/linux-4.7.x
+    creates: kernel_installed
+
+- name: check if kernel installed
+  stat:
+    path: ~/linux-4.7.x/not_restarted
+  register: not_restarted
+
+- name: restart machine
+  shell: sleep 2 && shutdown -r now
+  async: 1
+  poll: 0
+  become: yes
+  become_method: sudo
+  ignore_errors: true
+  when: not_restarted.stat.exists
+
+- name: wait for machine to restart
+  local_action:
+    module: wait_for
+      host={{ inventory_hostname }}
+      port=22
+      delay=10
+      timeout=300
+  become: false
+  when: not_restarted.stat.exists
+
+- name: wait for a while
+  pause:
+    seconds: 10
+  when: not_restarted.stat.exists
+
+- name: prevent restart multiple times
+  shell: rm not_restarted
+  args:
+    chdir: ~/linux-4.7.x
+  when: not_restarted.stat.exists
+
+- name: mod probe gtp
+  modprobe:
+    name: gtp
+    state: present

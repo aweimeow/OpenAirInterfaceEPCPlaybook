@@ -1,0 +1,9 @@
+- hosts: all
+  become: true
+  gather_facts: false
+  roles:
+    - python2
+    - git
+    - oai-epc-kernel
+    - oai-epc-dependency
+    - oai-epc
