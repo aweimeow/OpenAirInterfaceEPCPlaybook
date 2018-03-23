@@ -2,8 +2,7 @@
   become: true
   gather_facts: false
   roles:
-    - python2
-    - git
+    - pre-requirements
     - oai-epc-kernel
     - oai-epc-dependency
     - oai-epc

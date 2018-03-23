@@ -1,0 +1,37 @@
+- name: Update apt Cache
+  apt:
+    update_cache: yes 
+
+- name: Install apt Package
+  apt:
+    name: {{ item }}
+    state: latest
+  with_items:
+    - git
+    - python-minimal
+    - python-mysqldb
+    - dhcpcd5
+
+- name: Sudoer can directly sudo without password
+  lineinfile:
+    dest: /etc/sudoers
+    regexp: "^%sudo   ALL=(ALL:ALL) ALL"
+    line: "%sudo   ALL=(ALL:ALL) NOPASSWD:ALL"
+    state: present
+
+- name: Disable DNS reverse lookup function in ssh
+  lineinfile:
+    dest: {{ item }}
+    regexp: "^UseDNS"
+    line: "UseDNS no"
+    insertafter: EOF
+    state: present
+  with_items:
+    - /etc/ssh/sshd_config
+
+- name: Restart Services
+  service:
+    name: {{ item }}
+    state: restarted
+  with_items:
+    - ssh
